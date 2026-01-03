@@ -1,0 +1,34 @@
+{
+    // https://www.typescriptlang.org/tsconfig/
+    "compilerOptions": {
+        // Language and Environment
+        "target": "es6",
+        "useDefineForClassFields": true,
+        "lib": ["es6", "DOM"],
+
+        // Modules
+        "module": "es6",
+        "moduleResolution": "Node",
+        "resolveJsonModule": true,
+
+        // Type Checking
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": false, // TODO post-mvp
+        "noImplicitReturns": true,
+
+        // Emit
+        "sourceMap": true,
+        "noEmit": true,
+
+        // Interop Constraints
+        "isolatedModules": true,
+        "esModuleInterop": true,
+
+        // Completeness
+        "skipLibCheck": true,
+
+        "types": ["vitest/globals"]
+    },
+    "include": ["src/**/*", "vitest-setup.ts"]
+}

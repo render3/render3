@@ -1,0 +1,66 @@
+{
+    "name": "render3",
+    "description": "3D API for the DOM",
+    "version": "0.0.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/render3/render3.git"
+    },
+    "license": "Apache-2.0",
+    "author": "Arve Waltin",
+    "type": "module",
+    "files": [
+        "dist"
+    ],
+    "types": "./dist/index.d.ts",
+    "main": "./dist/render3.umd.js",
+    "module": "./dist/render3.es.js",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/render3.es.js",
+            "require": "./dist/render3.umd.js"
+        }
+    },
+    "unpkg": "./dist/render3.umd.js",
+    "jsdelivr": "./dist/render3.umd.js",
+    "publishConfig": {
+        "access": "public"
+    },
+    "scripts": {
+        "dev": "vite",
+        "build": "npm run build:verify && vite build && tsc -p tsconfig.build.json",
+        "build:verify": "npm run typecheck && npm run lint && npm run test",
+        "build:dev": "vite build --mode development",
+        "_preview": "vite preview ###https://github.com/vitejs/vite/issues/7009",
+        "test": "npm run test:unit",
+        "test:unit": "vitest run",
+        "lint": "xo --prettier --quiet",
+        "lint:format": "xo --prettier --fix",
+        "typecheck": "tsc --noEmit"
+    },
+    "devDependencies": {
+        "@testing-library/dom": "^10.4.1",
+        "@testing-library/jest-dom": "^6.9.1",
+        "eslint-config-prettier": "^10.1.8",
+        "jsdom": "^27.4.0",
+        "typescript": "^5.9.3",
+        "vite": "^5.0.10",
+        "vite-plugin-checker": "^0.8.0",
+        "vitest": "^1.4.0",
+        "xo": "0.52.4"
+    },
+    "prettier": {
+        "trailingComma": "es5",
+        "tabWidth": 4,
+        "arrowParens": "avoid",
+        "semi": true,
+        "bracketSpacing": true,
+        "singleQuote": false,
+        "useTabs": false
+    },
+    "engines": {
+        "node": ">=16.0.0"
+    },
+    "dependencies": {}
+}
