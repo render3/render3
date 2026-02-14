@@ -12,7 +12,7 @@ import { objectKeys } from "../utils/ts-util";
 import type { DomNodeDefinition } from "./pipeline-types";
 
 export type RendererInputOptions = {
-    domElement: HTMLElement | SVGElement;
+    domElement: HTMLElement | SVGElement | null; // eslint-disable-line @typescript-eslint/ban-types
     viewport: ViewportDims;
     backfaceCulling: boolean;
 };

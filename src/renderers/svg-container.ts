@@ -5,7 +5,7 @@ import { Renderer } from "./renderer";
 
 export abstract class SVGContainer extends Renderer<DomNamespace.SVG> {
     constructor(
-        optDomElement: HTMLElement | SVGElement | undefined,
+        optDomElement: HTMLElement | SVGElement | undefined | null, // eslint-disable-line @typescript-eslint/ban-types
         config: RendererConfig
     ) {
         const domElement =
