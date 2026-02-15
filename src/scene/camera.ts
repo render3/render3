@@ -83,8 +83,6 @@ export class Camera extends Object3D<Camera> {
             this.settings.type === "perspective"
                 ? Matrix.perspective(this.settings, this.aspectRatio)
                 : Matrix.ortho(this.settings, this.aspectRatio);
-
-        this.transformFactor = -1;
     }
 
     get aspectRatio() {
@@ -97,7 +95,7 @@ export class Camera extends Object3D<Camera> {
         }
 
         this.worldMatrix = modelMatrix;
-        this._matrix = modelMatrix.inverse();
+        this._matrix = modelMatrix.inverse(); // TODO post-mvp: use Matrix.lookAt() instead
         return this._matrix;
     }
 }
