@@ -83,14 +83,13 @@ export class Camera extends Object3D<Camera> {
             this.settings.type === "perspective"
                 ? Matrix.perspective(this.settings, this.aspectRatio)
                 : Matrix.ortho(this.settings, this.aspectRatio);
-
-        this.transformFactor = -1;
     }
 
     get aspectRatio() {
         return this.viewport.width / this.viewport.height;
     }
 
+    // TODO: Rename to viewMatrix
     getModelMatrix(modelMatrix: Matrix) {
         if (this.worldMatrix?.equals(modelMatrix)) {
             return this._matrix;

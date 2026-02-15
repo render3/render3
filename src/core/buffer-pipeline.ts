@@ -168,6 +168,7 @@ export const calculateSpaceInBuffer = <S extends SpaceKey>(
                     throw new Error("Camera not found in World space");
                 }
 
+                // View matrix
                 const cameraModelMatrix = camera.getModelMatrix(
                     worldCamera.geo.modelMatrix
                 );

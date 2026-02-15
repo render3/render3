@@ -220,6 +220,11 @@ export class Matrix {
         );
     }
 
+    // Builds a view matrix from eye/target/up.
+    //
+    // Not used by Camera internally because the camera already stores
+    // a full world transform and computes its view matrix via inversion.
+    // This function is a convenience for simple look-at cameras.
     static lookAt(
         eyeVector: Vector,
         centerVector: Vector,
@@ -244,6 +249,40 @@ export class Matrix {
             forward.y,
             forward.z,
             -forward.dot(eyeVector),
+
+            0,
+            0,
+            0,
+            1
+        );
+    }
+
+    // Create rotation matrix (transpose of lookAt rotation for world-to-camera)
+    // This works for both cameras and regular models
+    static lookRotation(
+        eyeVector: Vector,
+        centerVector: Vector,
+        upVector = new Vector3(0, 1, 0)
+    ) {
+        const forward = eyeVector.subtract(centerVector).unit();
+        const side = upVector.cross(forward).unit();
+        const up = forward.cross(side).unit();
+
+        return new Matrix(
+            side.x,
+            up.x,
+            forward.x,
+            0,
+
+            side.y,
+            up.y,
+            forward.y,
+            0,
+
+            side.z,
+            up.z,
+            forward.z,
+            0,
 
             0,
             0,

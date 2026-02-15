@@ -44,9 +44,6 @@ export abstract class Object3D<
 
     abstract _bsp: BSP | undefined;
 
-    protected transformFactor = 1;
-
-    // TODO mvp: fix rolling camera
     lookAt(lookAt: Partial<Vector>): void;
     lookAt(x: number, y: number, z: number): void;
     lookAt(lookAt: Partial<Vector> | number, y?: number, z?: number) {
@@ -61,23 +58,13 @@ export abstract class Object3D<
                 ? lookAt.z ?? 0
                 : z ?? 0
         );
-        const dForward = lookAtVector.subtract(this.position.vector);
-        const yRadians = Math.atan2(
-            dForward.x,
-            this.transformFactor * dForward.z
-        );
-        const xRadians = Math.atan2(
-            dForward.y,
-            new Vector3(
-                dForward.x,
-                0,
-                this.transformFactor * dForward.z
-            ).length()
-        );
 
-        const RAD2DEG = 180 / Math.PI;
-        this.rotation.y = this.transformFactor * yRadians * RAD2DEG;
-        this.rotation.x = xRadians * RAD2DEG;
+        // Create rotation matrix (transpose of lookAt rotation for world-to-camera)
+        this.rotation.matrix = Matrix.lookRotation(
+            this.position.vector,
+            lookAtVector
+        );
+        this.updateModelMatrix();
     }
 
     private updateModelMatrix() {
