@@ -28,19 +28,31 @@ export abstract class Object3D<
     modelMatrix: Matrix = Matrix.identity;
 
     // Local/World space
-    readonly scale: Scale = new Scale(() => {
-        this.updateModelMatrix();
-    }, new Vector3(1, 1, 1));
+    readonly scale = new Scale(
+        this,
+        () => {
+            this.updateModelMatrix();
+        },
+        new Vector3(1, 1, 1)
+    );
 
     // Local/World space
-    readonly rotation: Rotation = new Rotation(() => {
-        this.updateModelMatrix();
-    }, new Vector3(0, 0, 0));
+    readonly rotation = new Rotation(
+        this,
+        () => {
+            this.updateModelMatrix();
+        },
+        new Vector3(0, 0, 0)
+    );
 
     // Local/World space
-    readonly position: Position = new Position(() => {
-        this.updateModelMatrix();
-    }, new Vector3(0, 0, 0));
+    readonly position = new Position(
+        this,
+        () => {
+            this.updateModelMatrix();
+        },
+        new Vector3(0, 0, 0)
+    );
 
     abstract _bsp: BSP | undefined;
 

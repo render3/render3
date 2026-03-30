@@ -1,7 +1,7 @@
 import { Matrix } from "../geo/matrix";
 import { TransformAxes } from "./transform-axes";
 
-export class Rotation extends TransformAxes {
+export class Rotation<T> extends TransformAxes<T> {
     private xMatrix: Matrix = Matrix.identity;
     private yMatrix: Matrix = Matrix.identity;
     private zMatrix: Matrix = Matrix.identity;

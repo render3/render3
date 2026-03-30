@@ -1,11 +1,12 @@
 import { Matrix } from "../geo/matrix";
 import type { Vector } from "../geo/vector";
 
-export abstract class TransformAxes {
+export abstract class TransformAxes<T> {
     matrix: Matrix = Matrix.identity;
     readonly vector: Vector;
 
     constructor(
+        private readonly object3D: T,
         private readonly onChangeCallback: () => void,
         initValues: Vector
     ) {
@@ -43,6 +44,7 @@ export abstract class TransformAxes {
         this.x = x;
         this.y = y;
         this.z = z;
+        return this.object3D;
     }
 
     toString() {

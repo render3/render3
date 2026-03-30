@@ -41,10 +41,8 @@ type ModelingFace = "BACK" | "FRONT" | undefined;
 
 export type ShapeWithNormal = Shape & { _normal: Vector3 };
 
-export type Point2 = [number, number] | { x: number; y: number };
-export type Point3 =
-    | [number, number, number]
-    | { x: number; y: number; z: number };
+export type Point2 = number[] | { x: number; y: number };
+export type Point3 = number[] | { x: number; y: number; z: number };
 
 type BaseGeometry = {
     x?: number;
@@ -62,17 +60,15 @@ type Polygon3Geometry = {
     points: Point3[];
 } & BaseGeometry;
 
-type Geometry3 = Polygon3Geometry & { type: "Polygon3" };
-type Geometry2 =
-    | (Polygon2Geometry & { type: "Polygon2" })
-    | (Rect2Geometry & { type: "Rect2" });
+type Geometry3 = Polygon3Geometry;
+type Geometry2 = Polygon2Geometry | Rect2Geometry;
 type Geometry = Geometry3 | Geometry2;
 
 type ShapeOptions = {
     id?: string;
     material?: Material;
     modelingPlane?: ModelingPlane;
-    modelingFace?: ModelingFace;
+    modelingFace?: ModelingFace; // Only changing normal direction, not the coordinate space z direction
 };
 export type Rect2Options = Rect2Geometry & {
     holes?: Geometry2[];
@@ -187,13 +183,9 @@ export abstract class Shape {
             id: `${id ?? this.id}-back`,
             material: this.material,
             points: this.points.map(p => p.add(depthVector)).reverse(),
-            holes: this._holePoints.map(holePoints => {
-                const hole: Geometry3 = {
-                    type: "Polygon3",
-                    points: holePoints.map(p => p.add(depthVector)).reverse(),
-                };
-                return hole;
-            }),
+            holes: this._holePoints.map(holePoints => ({
+                points: holePoints.map(p => p.add(depthVector)).reverse(),
+            })),
         });
 
         const holeWalls = this._holePoints.flatMap(holePoints =>
@@ -262,14 +254,13 @@ export class Polygon3 extends Shape {
             : [parameter, ...parameterN].filter(isNotNull);
 
         this.points = geometryToVertices({
-            type: "Polygon3",
             points,
             ...(typeGuardByProperty<Polygon3Options>(parameter, "points")
                 ? parameter
                 : {}),
         });
 
-        this.holes = typeGuardByProperty<Polygon2Options>(parameter, "holes")
+        this.holes = typeGuardByProperty<Polygon3Options>(parameter, "holes")
             ? positionHoles(parameter.holes ?? [], parameter) // TODO post-mvp: refactor - move the parent-relative positioning into set holes() and introduce internal position to Geometry (shapes and holes)
             : [];
     }
@@ -323,7 +314,6 @@ export class Polygon2 extends Shape {
 
         this.points = geometryToVertices(
             {
-                type: "Polygon2",
                 points,
                 ...(typeGuardByProperty<Polygon2Options>(parameter, "points")
                     ? parameter
@@ -355,7 +345,7 @@ export class Rect2 extends Shape {
         this._clonableOptions = options;
 
         this.points = geometryToVertices(
-            { type: "Rect2", ...options },
+            { ...options },
             options.modelingPlane,
             options.modelingFace
         );
@@ -373,47 +363,23 @@ export class Rect2 extends Shape {
 }
 
 const toVertices = (geometry: Geometry): Vertex[] => {
-    switch (geometry.type) {
-        case "Rect2": {
-            const { width, height } = geometry;
+    if ("width" in geometry) {
+        const { width, height } = geometry;
 
-            // prettier-ignore
-            return Vertex.from([
-                0, 0, 0,
-                 width, 0, 0,
-                 width,  height, 0,
-                0,  height, 0
-            ], 3);
-        }
-
-        case "Polygon2": {
-            const { points } = geometry;
-
-            return points.map(
-                point =>
-                    new Vertex(
-                        Array.isArray(point) ? point[0] : point.x,
-                        Array.isArray(point) ? point[1] : point.y,
-                        0
-                    )
-            );
-        }
-
-        case "Polygon3": {
-            const { points } = geometry;
-
-            return points.map(
-                point =>
-                    new Vertex(
-                        Array.isArray(point) ? point[0] : point.x,
-                        Array.isArray(point) ? point[1] : point.y,
-                        Array.isArray(point) ? point[2] : point.z
-                    )
-            );
-        }
-
-        // No default
+        // prettier-ignore
+        return Vertex.from([
+            0, 0, 0,
+             width, 0, 0,
+             width,  height, 0,
+            0,  height, 0
+        ], 3);
     }
+
+    return geometry.points.map(point =>
+        Array.isArray(point)
+            ? new Vertex(point[0], point[1], point[2] ?? 0)
+            : new Vertex(point.x, point.y, "z" in point ? point.z : 0)
+    );
 };
 
 const positionVertices = (
@@ -463,6 +429,12 @@ const planeAdjustVertices = (
     }
 };
 
+const isGeo2 = (geometry: Geometry): boolean => {
+    if ("width" in geometry) return true;
+    const p = geometry.points[0];
+    return Array.isArray(p) ? p.length < 3 : !("z" in p);
+};
+
 const geometryToVertices = (
     geometry: Geometry,
     modelingPlane?: ModelingPlane,
@@ -477,10 +449,8 @@ const geometryToVertices = (
         geometry.z
     );
 
-    const isGeo2 = geometry.type === "Rect2" || geometry.type === "Polygon2";
-
     if (
-        isGeo2 &&
+        isGeo2(geometry) &&
         (windingOrder2D(positionedVertices) === "CCW") ===
             (modelingFace === "BACK")
     ) {
@@ -490,7 +460,7 @@ const geometryToVertices = (
     return planeAdjustVertices(positionedVertices, modelingPlane);
 };
 
-const positionHoles = (holes: Geometry[], parent: BaseGeometry) => {
+const positionHoles = (holes: Geometry[], parent: BaseGeometry): Geometry[] => {
     return holes.map(hole => ({
         ...hole,
         ...(parent.x == null ? {} : { x: (hole.x ?? 0) + parent.x }),
