@@ -73,11 +73,11 @@ export class Plane {
         this.origo = definition.origo;
         this.unitNormal =
             "normal" in definition
-                ? definition.normal.unit()
+                ? definition.normal.unit() // TODO: possible NaN?
                 : definition.points[0]
                       .subtract(definition.origo)
                       .cross(definition.points[1].subtract(definition.origo))
-                      .unit();
+                      .unit(); // TODO: possible NaN?
 
         this.d = this.unitNormal.dot(definition.origo);
     }

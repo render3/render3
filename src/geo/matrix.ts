@@ -265,7 +265,16 @@ export class Matrix {
         upVector = new Vector3(0, 1, 0)
     ) {
         const forward = eyeVector.subtract(centerVector).unit();
-        const side = upVector.cross(forward).unit();
+        // Eye and center are the same point — no meaningful direction, return identity
+        if (!Number.isFinite(forward.x)) return Matrix.identity;
+
+        let sideCandidate = upVector.cross(forward);
+        // Up is parallel to forward (looking straight up/down) — keep side along world X
+        if (sideCandidate.length() < 1e-6) {
+            sideCandidate = new Vector3(1, 0, 0);
+        }
+
+        const side = sideCandidate.unit();
         const up = forward.cross(side).unit();
 
         return new Matrix(
@@ -295,6 +304,10 @@ export class Matrix {
 
     constructor(...numbers: MatrixTuple) {
         this.elements = numbers;
+    }
+
+    isValid() {
+        return this.elements.every(element => Number.isFinite(element));
     }
 
     equals(matrix: Matrix) {

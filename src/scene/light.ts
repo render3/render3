@@ -81,6 +81,6 @@ export class DirectionalLight extends Light {
 
         // Direction of incoming light toward a surface (not the lightray direction)
         const { x = 0.5, y = 1, z = 0.5 } = options ?? {};
-        this.direction = new Vector3(x, y, z).unit();
+        this.direction = new Vector3(x, y, z).unit(); // TODO: possible NaN?
     }
 }
