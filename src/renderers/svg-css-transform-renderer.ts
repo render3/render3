@@ -24,7 +24,7 @@ import type { RendererInputOptions } from "./renderer";
 export class SVGCSSTransformRenderer extends HtmlDivContainer<DomNamespace.SVG> {
     override readonly pipelineTarget: SpaceKey = "PROJECTION"; // eslint-disable-line @typescript-eslint/class-literal-property-style
 
-    constructor(options?: Partial<RendererInputOptions>) {
+    constructor(options?: Partial<RendererInputOptions<HTMLElement>>) {
         super(DomNamespace.SVG, options?.domElement, {
             viewport: options?.viewport ?? defaultViewport,
             vsd: {

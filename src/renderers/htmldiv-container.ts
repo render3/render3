@@ -8,7 +8,7 @@ export abstract class HtmlDivContainer<
 > extends Renderer<N> {
     constructor(
         namespace: N,
-        optDomElement: HTMLElement | SVGElement | undefined | null, // eslint-disable-line @typescript-eslint/ban-types
+        optDomElement: HTMLElement | undefined | null, // eslint-disable-line @typescript-eslint/ban-types
         config: RendererConfig
     ) {
         const domElement =

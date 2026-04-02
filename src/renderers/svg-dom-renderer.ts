@@ -9,7 +9,7 @@ import { SVGContainer } from "./svg-container";
 import type { RendererInputOptions } from "./renderer";
 
 export class SVGDOMRenderer extends SVGContainer {
-    constructor(options?: Partial<RendererInputOptions>) {
+    constructor(options?: Partial<RendererInputOptions<SVGSVGElement>>) {
         super(options?.domElement, {
             viewport: options?.viewport ?? defaultViewport,
             vsd: {

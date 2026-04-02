@@ -11,8 +11,10 @@ import { Space, type SpaceKey } from "../types/spaces";
 import { objectKeys } from "../utils/ts-util";
 import type { DomNodeDefinition } from "./pipeline-types";
 
-export type RendererInputOptions = {
-    domElement: HTMLElement | SVGElement | null; // eslint-disable-line @typescript-eslint/ban-types
+export type RendererInputOptions<T extends HTMLElement | SVGElement> = {
+    // TODO:  Update XO, see https://typescript-eslint.io/rules/ban-types/
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    domElement: T | undefined | null;
     viewport: ViewportDims;
     backfaceCulling: boolean;
 };
