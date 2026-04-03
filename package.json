@@ -31,6 +31,7 @@
         "dev": "vite",
         "build": "npm run build:verify && vite build && tsc -p tsconfig.build.json",
         "build:verify": "npm run typecheck && npm run lint && npm run test",
+        "prepublishOnly": "npm run build:verify && npm run build",
         "build:dev": "vite build --mode development",
         "_preview": "vite preview ###https://github.com/vitejs/vite/issues/7009",
         "test": "npm run test:unit",
