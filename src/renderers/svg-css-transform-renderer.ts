@@ -36,13 +36,22 @@ export class SVGCSSTransformRenderer extends HtmlDivContainer<DomNamespace.SVG> 
             },
         });
 
-        // TODO mvp: don't overwrite existing attrs on domElement (see svg-container.ts)
-        this.domElement.style.width = `${this.config.viewport.width}${
-            this.config.viewport.unit ?? "px"
-        }`;
-        this.domElement.style.height = `${this.config.viewport.height}${
-            this.config.viewport.unit ?? "px"
-        }`;
+        this.domElement.style.width = this.domElement.style.width
+            ? this.domElement.style.width
+            : `${this.config.viewport.width}${
+                  this.config.viewport.unit ?? "px"
+              }`;
+        this.domElement.style.height = this.domElement.style.height
+            ? this.domElement.style.height
+            : `${this.config.viewport.height}${
+                  this.config.viewport.unit ?? "px"
+              }`;
+        this.domElement.style.position = this.domElement.style.position
+            ? this.domElement.style.position
+            : "relative";
+        this.domElement.style.overflow = this.domElement.style.overflow
+            ? this.domElement.style.overflow
+            : "hidden"; // TODO: frustum clip too
     }
 
     override toDom(
@@ -83,8 +92,6 @@ export class SVGCSSTransformRenderer extends HtmlDivContainer<DomNamespace.SVG> 
                                         tag: "svg",
                                         style: {
                                             position: "absolute",
-                                            left: "0",
-                                            top: "0",
                                             transformOrigin: "0px 0px", // Data2D origin, see offsetXY
                                         },
                                         attributes: {
