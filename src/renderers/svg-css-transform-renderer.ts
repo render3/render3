@@ -36,16 +36,6 @@ export class SVGCSSTransformRenderer extends HtmlDivContainer<DomNamespace.SVG> 
             },
         });
 
-        this.domElement.style.width = this.domElement.style.width
-            ? this.domElement.style.width
-            : `${this.config.viewport.width}${
-                  this.config.viewport.unit ?? "px"
-              }`;
-        this.domElement.style.height = this.domElement.style.height
-            ? this.domElement.style.height
-            : `${this.config.viewport.height}${
-                  this.config.viewport.unit ?? "px"
-              }`;
         this.domElement.style.position = this.domElement.style.position
             ? this.domElement.style.position
             : "relative";

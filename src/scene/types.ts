@@ -34,6 +34,5 @@ export type Frustum = {
 export type ViewportDims = {
     width: number;
     height: number;
-    unit?: string;
 };
 export type Viewport = ViewportDims & { matrix: Matrix };
