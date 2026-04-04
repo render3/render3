@@ -11,15 +11,20 @@ export abstract class SVGContainer extends Renderer<DomNamespace.SVG> {
         const domElement =
             optDomElement ?? createDomElement(DomNamespace.SVG, "svg");
 
-        if (!domElement.getAttribute("viewBox")) {
-            domElement.setAttribute(
-                "viewBox",
-                `${-domElement.clientWidth / 2} ${
-                    -domElement.clientHeight / 2
-                } ${domElement.clientWidth} ${domElement.clientHeight}`
-            );
-        }
+        setViewBox(domElement);
+        new ResizeObserver(() => {
+            setViewBox(domElement);
+        }).observe(domElement);
 
         super(DomNamespace.SVG, domElement, config);
     }
 }
+
+const setViewBox = (domElement: SVGElement) => {
+    domElement.setAttribute(
+        "viewBox",
+        `${-domElement.clientWidth / 2} ${-domElement.clientHeight / 2} ${
+            domElement.clientWidth
+        } ${domElement.clientHeight}`
+    );
+};
