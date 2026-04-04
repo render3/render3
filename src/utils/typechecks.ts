@@ -22,7 +22,7 @@ export const typeGuardByProperty = <T>(
     value: any,
     property: keyof T
 ): value is T => {
-    return value != null && property in value;
+    return value != null && !typeGuardPrimitive(value) && property in value;
 };
 
 export const typeGuardByCondition = <T>(
