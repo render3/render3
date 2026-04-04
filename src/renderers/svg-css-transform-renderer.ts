@@ -94,7 +94,7 @@ export class SVGCSSTransformRenderer extends HtmlDivContainer<DomNamespace.SVG> 
                                         },
                                     },
                                 ],
-                                fillElement(element) {
+                                fillElement: element => {
                                     element.setAttribute(
                                         "id",
                                         shapeGeo.shape.id
@@ -160,7 +160,7 @@ export class SVGCSSTransformRenderer extends HtmlDivContainer<DomNamespace.SVG> 
                                     if (element.ownerSVGElement) {
                                         element.ownerSVGElement.style.transform = `matrix3d(${
                                             // prettier-ignore
-                                            Matrix.translate({ x: viewport.width / 2, y: viewport.height / 2 }) // ViewBox
+                                            Matrix.translate({ x: this.domElement.clientWidth / 2, y: this.domElement.clientHeight / 2 }) // ViewBox
                                                 .multiply(Matrix.viewport(viewport)) // TODO post-mvp: Why not camera.viewport.matrix?
                                                 .multiply(Matrix.flip({ y: true }))
                                                 .multiply(mvpMatrix)
