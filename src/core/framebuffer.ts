@@ -3,7 +3,6 @@ import type { Vector, Vertex } from "../geo/vector";
 import type { Bounding } from "../scene/bounding";
 import type { Group, Model } from "../scene/model";
 import type { Camera } from "../scene/camera";
-import { Object3D } from "../scene/model";
 import type { ShapeWithNormal } from "../scene/shape";
 
 // Interface of Data2D
@@ -141,22 +140,16 @@ export class FrameBuffer {
         objects: Array<Model | Group | Camera>,
         callback: (
             object: Model | Group | Camera,
-            objectBuffer: ObjectFrameBuffer,
-            parentObjectBuffer: ObjectFrameBuffer | undefined
+            objectBuffer: ObjectFrameBuffer
         ) => R
     ): R[] {
         return objects.map(object => {
             const objectFrameBuffer = this.get(object);
-            const parentObjectBuffer =
-                object.parent instanceof Object3D
-                    ? this.get(object.parent)
-                    : undefined;
-
             if (objectFrameBuffer == null) {
                 throw new Error("Object not found in FrameBuffer");
             }
 
-            return callback(object, objectFrameBuffer, parentObjectBuffer);
+            return callback(object, objectFrameBuffer);
         });
     }
 }

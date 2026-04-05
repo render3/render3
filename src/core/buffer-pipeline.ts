@@ -104,54 +104,36 @@ export const calculateSpaceInBuffer = <S extends SpaceKey>(
         }
 
         case "WORLD": {
-            buffer.bufferModelsCallback(
-                models,
-                (model, modelFrameBuffer, parentModelBuffer) => {
-                    const sceneGraphModelMatrix = parentModelBuffer?.WORLD
-                        ? // 2) then transform it in parent's space
-                          parentModelBuffer.WORLD.geo.modelMatrix.multiply(
-                              // 1) model transform in its own space
-                              model.modelMatrix
-                          )
-                        : model.modelMatrix;
+            buffer.bufferModelsCallback(models, (model, modelFrameBuffer) => {
+                modelFrameBuffer.WORLD = {
+                    modelFrameBuffer,
+                    geo: {
+                        vertices: new ArrayLazyMap(
+                            modelFrameBuffer.LOCAL.geo.vertices,
+                            v => v.transform(model.matrixWorld)
+                        ),
+                        bounding: modelFrameBuffer.LOCAL.geo.bounding.transform(
+                            model.matrixWorld,
+                            model.rotationMatrixWorld
+                        ),
+                        modelMatrix: model.matrixWorld,
+                        modelNormalMatrix: model.rotationMatrixWorld,
 
-                    const sceneGraphModelNormalMatrix = parentModelBuffer?.WORLD
-                        ? parentModelBuffer.WORLD.geo.modelNormalMatrix.multiply(
-                              model.rotation.matrix
-                          )
-                        : model.rotation.matrix;
+                        shapes: modelFrameBuffer.LOCAL.geo.shapes.map(
+                            shapeGeo => {
+                                shapeGeo.WORLD = {
+                                    modelNormal:
+                                        shapeGeo.shape._normal.transform(
+                                            model.rotationMatrixWorld
+                                        ),
+                                };
 
-                    modelFrameBuffer.WORLD = {
-                        modelFrameBuffer,
-                        geo: {
-                            vertices: new ArrayLazyMap(
-                                modelFrameBuffer.LOCAL.geo.vertices,
-                                v => v.transform(sceneGraphModelMatrix)
-                            ),
-                            bounding:
-                                modelFrameBuffer.LOCAL.geo.bounding.transform(
-                                    sceneGraphModelMatrix,
-                                    sceneGraphModelNormalMatrix
-                                ),
-                            modelMatrix: sceneGraphModelMatrix,
-                            modelNormalMatrix: sceneGraphModelNormalMatrix,
-
-                            shapes: modelFrameBuffer.LOCAL.geo.shapes.map(
-                                shapeGeo => {
-                                    shapeGeo.WORLD = {
-                                        modelNormal:
-                                            shapeGeo.shape._normal.transform(
-                                                sceneGraphModelNormalMatrix
-                                            ),
-                                    };
-
-                                    return shapeGeo;
-                                }
-                            ),
-                        },
-                    };
-                }
-            );
+                                return shapeGeo;
+                            }
+                        ),
+                    },
+                };
+            });
 
             break;
         }

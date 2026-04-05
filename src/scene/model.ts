@@ -8,7 +8,7 @@ import { Rotation } from "../transform/rotation";
 import { Scale } from "../transform/scale";
 import { isNotNull } from "../utils/ts-util";
 import { typeGuardByProperty } from "../utils/typechecks";
-import { createObservableArray } from "../utils/utils";
+import { createObservableArray, getAllNested } from "../utils/utils";
 import { BSP } from "./bsp";
 import type { Camera } from "./camera";
 import type { Scene } from "./scene";
@@ -24,37 +24,44 @@ type Options = {
 export abstract class Object3D<
     T extends Model | Group | Camera
 > extends SceneNode<T, Scene | Model | Group | Camera, Model | Group | Camera> {
-    // From local space to world space
-    modelMatrix: Matrix = Matrix.identity;
+    matrix: Matrix = Matrix.identity;
+    // Own matrix + parents
+    matrixWorld: Matrix = Matrix.identity;
+    rotationMatrixWorld: Matrix = Matrix.identity;
 
-    // Local/World space
+    // Local space
     readonly scale = new Scale(
         this,
         () => {
-            this.updateModelMatrix();
+            this.updateMatrices();
         },
         new Vector3(1, 1, 1)
     );
 
-    // Local/World space
+    // Local space
     readonly rotation = new Rotation(
         this,
         () => {
-            this.updateModelMatrix();
+            this.updateMatrices();
         },
         new Vector3(0, 0, 0)
     );
 
-    // Local/World space
+    // Local space (could practically be World space too)
     readonly position = new Position(
         this,
         () => {
-            this.updateModelMatrix();
+            this.updateMatrices();
         },
         new Vector3(0, 0, 0)
     );
 
     abstract _bsp: BSP | undefined;
+
+    constructor(public id?: string) {
+        super(id);
+        this.updateMatrixWorld();
+    }
 
     lookAt(lookAt: XYZ): void;
     lookAt(x: number, y: number, z: number): void;
@@ -67,19 +74,48 @@ export abstract class Object3D<
 
         // Create rotation matrix (transpose of lookAt rotation for world-to-camera)
         this.rotation.matrix = Matrix.lookRotation(
-            this.position.vector,
+            this.getWorldPosition(),
             lookAtVector
         );
-        this.updateModelMatrix();
+        this.updateMatrices();
     }
 
-    private updateModelMatrix() {
+    getWorldPosition() {
+        // Extracting translation directly instead of calculating with `new Vector(0,0,0).transform(this.matrixWorld)`
+        const { elements } = this.matrixWorld;
+        return new Vector3(elements[3], elements[7], elements[11]);
+    }
+
+    private updateMatrices() {
+        this.updateMatrix();
+        this.updateMatrixWorld();
+
+        const children = this.children.flatMap(child =>
+            getAllNested(child, node => node.children)
+        );
+        for (const child of children) child.updateMatrixWorld();
+    }
+
+    private updateMatrix() {
         // 3) translating in local space
-        this.modelMatrix = this.position.matrix
+        this.matrix = this.position.matrix
             // 2) rotating in local space
             .multiply(this.rotation.matrix)
             // 1) scaling in local space
             .multiply(this.scale.matrix);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/member-ordering
+    updateMatrixWorld() {
+        this.matrixWorld =
+            this.parent instanceof Object3D
+                ? this.parent.matrixWorld.multiply(this.matrix)
+                : this.matrix;
+
+        this.rotationMatrixWorld =
+            this.parent instanceof Object3D
+                ? this.parent.rotationMatrixWorld.multiply(this.rotation.matrix)
+                : this.rotation.matrix;
     }
 }
 
