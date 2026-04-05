@@ -172,6 +172,8 @@ export abstract class Shape {
         const depthVector = newellNormal(this.points)?.multiply(-depth);
         if (depthVector == null) throw new Error("invalid shape");
 
+        this.id = id ?? this.id;
+
         const walls = createExtrudedWalls(
             this.points,
             depthVector,
