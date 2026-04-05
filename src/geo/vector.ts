@@ -7,7 +7,13 @@ export const W = {
     direction: 0,
 };
 
-export abstract class Vector {
+export type XYZ = {
+    x: number;
+    y: number;
+    z: number;
+};
+
+export abstract class Vector implements XYZ {
     constructor(
         public x: number,
         public y: number,

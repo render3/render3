@@ -1,5 +1,6 @@
 import { Matrix } from "../geo/matrix";
-import type { Vector } from "../geo/vector";
+import type { Vector, XYZ } from "../geo/vector";
+import { typeGuardByProperty } from "../utils/typechecks";
 
 export abstract class TransformAxes<T> {
     matrix: Matrix = Matrix.identity;
@@ -40,10 +41,12 @@ export abstract class TransformAxes<T> {
         this.onChangeHandlers("z");
     }
 
-    set(x: number, y: number, z: number) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+    set(vector: XYZ): void;
+    set(x: number, y: number, z: number): void;
+    set(vector: XYZ | number, y?: number, z?: number) {
+        this.x = typeGuardByProperty<XYZ>(vector, "x") ? vector.x : vector;
+        this.y = typeGuardByProperty<XYZ>(vector, "y") ? vector.y : y ?? 0;
+        this.z = typeGuardByProperty<XYZ>(vector, "z") ? vector.z : z ?? 0;
         return this.object3D;
     }
 

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/unified-signatures */
 
 import { Matrix } from "../geo/matrix";
-import type { Vector } from "../geo/vector";
+import type { XYZ } from "../geo/vector";
 import { Vector3 } from "../geo/vector";
 import { Position } from "../transform/position";
 import { Rotation } from "../transform/rotation";
@@ -56,19 +56,13 @@ export abstract class Object3D<
 
     abstract _bsp: BSP | undefined;
 
-    lookAt(lookAt: Partial<Vector>): void;
+    lookAt(lookAt: XYZ): void;
     lookAt(x: number, y: number, z: number): void;
-    lookAt(lookAt: Partial<Vector> | number, y?: number, z?: number) {
+    lookAt(lookAt: XYZ | number, y?: number, z?: number) {
         const lookAtVector = new Vector3(
-            typeGuardByProperty<Partial<Vector>>(lookAt, "x")
-                ? lookAt.x ?? 0
-                : lookAt,
-            typeGuardByProperty<Partial<Vector>>(lookAt, "y")
-                ? lookAt.y ?? 0
-                : y ?? 0,
-            typeGuardByProperty<Partial<Vector>>(lookAt, "z")
-                ? lookAt.z ?? 0
-                : z ?? 0
+            typeGuardByProperty<XYZ>(lookAt, "x") ? lookAt.x ?? 0 : lookAt,
+            typeGuardByProperty<XYZ>(lookAt, "y") ? lookAt.y ?? 0 : y ?? 0,
+            typeGuardByProperty<XYZ>(lookAt, "z") ? lookAt.z ?? 0 : z ?? 0
         );
 
         // Create rotation matrix (transpose of lookAt rotation for world-to-camera)
