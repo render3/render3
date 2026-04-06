@@ -41,9 +41,9 @@ export abstract class TransformAxes<T> {
         this.onChangeHandlers("z");
     }
 
-    set(vector: XYZ): void;
-    set(x: number, y: number, z: number): void;
-    set(vector: XYZ | number, y?: number, z?: number) {
+    set(vector: XYZ): T;
+    set(x: number, y: number, z: number): T;
+    set(vector: XYZ | number, y?: number, z?: number): T {
         this.x = typeGuardByProperty<XYZ>(vector, "x") ? vector.x : vector;
         this.y = typeGuardByProperty<XYZ>(vector, "y") ? vector.y : y ?? 0;
         this.z = typeGuardByProperty<XYZ>(vector, "z") ? vector.z : z ?? 0;

@@ -1,5 +1,6 @@
 import { EPSILON } from "../core/constants";
 import { isNotNull } from "../utils/ts-util";
+import { typeGuardByProperty } from "../utils/typechecks";
 import type { Matrix } from "./matrix";
 
 export const W = {
@@ -25,14 +26,16 @@ export abstract class Vector implements XYZ {
         if (Number.isNaN(z)) console.warn("z is NaN");
     }
 
-    set(x: number, y: number, z: number) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+    set(vector: XYZ): void;
+    set(x: number, y: number, z: number): void;
+    set(vector: XYZ | number, y?: number, z?: number): void {
+        this.x = typeGuardByProperty<XYZ>(vector, "x") ? vector.x : vector;
+        this.y = typeGuardByProperty<XYZ>(vector, "y") ? vector.y : y ?? 0;
+        this.z = typeGuardByProperty<XYZ>(vector, "z") ? vector.z : z ?? 0;
 
-        if (Number.isNaN(x)) console.warn("x is NaN");
-        if (Number.isNaN(y)) console.warn("y is NaN");
-        if (Number.isNaN(z)) console.warn("z is NaN");
+        if (Number.isNaN(this.x)) console.warn("x is NaN");
+        if (Number.isNaN(this.y)) console.warn("y is NaN");
+        if (Number.isNaN(this.z)) console.warn("z is NaN");
     }
 
     asVertex() {
@@ -138,7 +141,7 @@ export abstract class Vector implements XYZ {
         );
     }
 
-    add(vector: Vector) {
+    add(vector: XYZ) {
         return new Vector3(
             this.x + vector.x,
             this.y + vector.y,
@@ -146,7 +149,7 @@ export abstract class Vector implements XYZ {
         );
     }
 
-    subtract(vector: Vector) {
+    subtract(vector: XYZ) {
         return new Vector3(
             this.x - vector.x,
             this.y - vector.y,
@@ -170,9 +173,14 @@ export abstract class Vector implements XYZ {
 export class Vector3 extends Vector {
     static readonly origin = new Vector3(0, 0, 0);
 
-    // eslint-disable-next-line @typescript-eslint/no-useless-constructor
-    constructor(x: number, y: number, z: number) {
-        super(x, y, z);
+    constructor(vector: XYZ);
+    constructor(x: number, y: number, z: number);
+    constructor(vector: XYZ | number, y?: number, z?: number) {
+        super(
+            typeGuardByProperty<XYZ>(vector, "x") ? vector.x : vector,
+            typeGuardByProperty<XYZ>(vector, "y") ? vector.y : y ?? 0,
+            typeGuardByProperty<XYZ>(vector, "z") ? vector.z : z ?? 0
+        );
     }
 }
 

@@ -65,7 +65,7 @@ export abstract class Object3D<
 
     lookAt(lookAt: XYZ): void;
     lookAt(x: number, y: number, z: number): void;
-    lookAt(lookAt: XYZ | number, y?: number, z?: number) {
+    lookAt(lookAt: XYZ | number, y?: number, z?: number): void {
         const lookAtVector = new Vector3(
             typeGuardByProperty<XYZ>(lookAt, "x") ? lookAt.x ?? 0 : lookAt,
             typeGuardByProperty<XYZ>(lookAt, "y") ? lookAt.y ?? 0 : y ?? 0,
