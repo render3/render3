@@ -141,20 +141,25 @@ export class Model extends Object3D<Model> {
     constructor(...shapes: Shape[]);
     constructor(parameter?: Options | Shape, ...parameterN: Shape[]) {
         super(
-            typeGuardByProperty<Options>(parameter, "shapes")
-                ? parameter?.id
+            typeGuardByProperty<Options>(parameter, "id")
+                ? parameter.id
                 : undefined
         );
         this._clonableOptions = {
-            ...(typeGuardByProperty<Options>(parameter, "shapes")
-                ? parameter
-                : { shapes: [parameter, ...parameterN].filter(isNotNull) }),
+            ...(typeGuardByProperty<Shape>(parameter, "points")
+                ? { shapes: [parameter, ...parameterN].filter(isNotNull) }
+                : parameter),
         };
 
         if (typeGuardByProperty<Options>(parameter, "shapes")) {
-            this.shapes.push(...(parameter?.shapes ?? []));
-            this.material = parameter?.material;
-        } else if (parameter != null) {
+            this.shapes.push(...(parameter.shapes ?? []));
+        }
+
+        if (typeGuardByProperty<Options>(parameter, "material")) {
+            this.material = parameter.material;
+        }
+
+        if (typeGuardByProperty<Shape>(parameter, "points")) {
             this.shapes.push(parameter, ...parameterN);
         }
     }

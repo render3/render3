@@ -20,9 +20,15 @@ export const typeGuardObjectL = (value: Any): value is ObjectL => {
 
 export const typeGuardByProperty = <T>(
     value: any,
-    property: keyof T
+    property: keyof T | Array<keyof T>
 ): value is T => {
-    return value != null && !typeGuardPrimitive(value) && property in value;
+    return (
+        value != null &&
+        !typeGuardPrimitive(value) &&
+        (Array.isArray(property)
+            ? property.some(prop => prop in value)
+            : property in value)
+    );
 };
 
 export const typeGuardByCondition = <T>(

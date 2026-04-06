@@ -241,7 +241,12 @@ export class Polygon3 extends Shape {
     ) {
         super(
             "Polygon3",
-            typeGuardByProperty<Polygon3Options>(parameter, "material")
+            typeGuardByProperty<Polygon3Options>(parameter, [
+                "id",
+                "material",
+                "modelingPlane",
+                "modelingFace",
+            ])
                 ? parameter
                 : undefined
         );
@@ -287,7 +292,12 @@ export class Polygon2 extends Shape {
     ) {
         super(
             "Polygon2",
-            typeGuardByProperty<Polygon2Options>(parameter, "material")
+            typeGuardByProperty<Polygon2Options>(parameter, [
+                "id",
+                "material",
+                "modelingPlane",
+                "modelingFace",
+            ])
                 ? parameter
                 : undefined
         );
