@@ -151,7 +151,7 @@ export const calculateSpaceInBuffer = <S extends SpaceKey>(
                 }
 
                 // View matrix
-                const cameraModelMatrix = camera.getModelMatrix(
+                const cameraModelMatrix = camera.getMatrixWorldInverse(
                     worldCamera.geo.modelMatrix
                 );
                 const cameraModelNormalMatrix =

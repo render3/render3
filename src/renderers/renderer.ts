@@ -51,6 +51,7 @@ export abstract class Renderer<N extends DomNamespace> {
         camera ??= defaultCamera;
         const frameBuffer = buffer ?? defaultFrameBuffer;
 
+        camera.updateProjectionMatrix(this.config.viewport);
         if (camera.parent == null) {
             scene.add(camera);
         }

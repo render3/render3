@@ -38,8 +38,8 @@ export class Camera extends Object3D<Camera> {
     material = undefined;
 
     readonly settings: PerspectiveCameraSettings | OrthographicCameraSettings;
-    readonly viewport: Viewport;
-    readonly projectionMatrix: Matrix;
+    private _viewport: Viewport;
+    private _projectionMatrix: Matrix;
 
     private worldMatrix: Matrix | undefined;
     private _matrix = Matrix.identity;
@@ -62,7 +62,7 @@ export class Camera extends Object3D<Camera> {
                   };
 
         const viewportDims = { ...defaultViewport, ...viewport };
-        this.viewport = {
+        this._viewport = {
             ...viewportDims,
             matrix: Matrix.viewport(viewportDims),
         };
@@ -79,7 +79,7 @@ export class Camera extends Object3D<Camera> {
          */
 
         // // Still right-handed (projection only flips the numerical depth range, not the handedness of the coordinate system)
-        this.projectionMatrix =
+        this._projectionMatrix =
             this.settings.type === "perspective"
                 ? Matrix.perspective(this.settings, this.aspectRatio)
                 : Matrix.ortho(this.settings, this.aspectRatio);
@@ -89,8 +89,35 @@ export class Camera extends Object3D<Camera> {
         return this.viewport.width / this.viewport.height;
     }
 
-    // TODO: Rename to viewMatrix
-    getModelMatrix(modelMatrix: Matrix) {
+    get viewport() {
+        return this._viewport;
+    }
+
+    get projectionMatrix() {
+        return this._projectionMatrix;
+    }
+
+    // TODO: also updating viewport matrix, but that should not be here
+    updateProjectionMatrix(viewportDims: ViewportDims) {
+        if (
+            viewportDims.width === this.viewport.width &&
+            viewportDims.height === this.viewport.height
+        ) {
+            return;
+        }
+
+        this._viewport = {
+            ...viewportDims,
+            matrix: Matrix.viewport(viewportDims),
+        };
+
+        this._projectionMatrix =
+            this.settings.type === "perspective"
+                ? Matrix.perspective(this.settings, this.aspectRatio)
+                : Matrix.ortho(this.settings, this.aspectRatio);
+    }
+
+    getMatrixWorldInverse(modelMatrix: Matrix) {
         if (this.worldMatrix?.equals(modelMatrix)) {
             return this._matrix;
         }

@@ -161,7 +161,7 @@ export class SVGCSSTransformRenderer extends HtmlDivContainer<DomNamespace.SVG> 
                                         element.ownerSVGElement.style.transform = `matrix3d(${
                                             // prettier-ignore
                                             Matrix.translate({ x: this.domElement.clientWidth / 2, y: this.domElement.clientHeight / 2 }) // ViewBox
-                                                .multiply(Matrix.viewport(viewport)) // TODO post-mvp: Why not camera.viewport.matrix?
+                                                .multiply(Matrix.viewport(viewport)) // Screen space, TODO post-mvp: We already have it calculated in camera.viewport.matrix, but it should exist in renderer instead
                                                 .multiply(Matrix.flip({ y: true }))
                                                 .multiply(mvpMatrix)
                                                 .multiply(shapeGeo.LOCAL.data2D.matrix3D)
