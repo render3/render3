@@ -144,9 +144,12 @@ export abstract class Shape {
         id?: string,
         options?: ExtrudeOptions
     ): Model {
+        const shapeMaterial: Material = { ...this.material };
+        this.material = undefined;
+
         return new Model({
             id,
-            material: this.material,
+            material: shapeMaterial,
             shapes: this.extrudeToShapes(depth, id, options),
         });
     }
@@ -215,9 +218,12 @@ export abstract class Shape {
      * Toposort (both pointsAndBoundingPlaneCompare() and compareZ()) will sort flat models in front
      */
     toModel(id?: string): Model {
+        const shapeMaterial: Material = { ...this.material };
+        this.material = undefined;
+
         return new Model({
             id,
-            material: this.material,
+            material: shapeMaterial,
             shapes: [this],
         });
     }
