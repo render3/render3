@@ -20,7 +20,21 @@ export const topoSort = (
     const sortedNodes = sortGraph(graph);
 
     if (sortedNodes.length < graph.length) {
-        console.warn("Cycle detected");
+        console.warn("Cycle detected. Z-sorting all.");
+
+        /* -  
+        const unsorted = graph.filter(node => !sortedNodes.includes(node));
+        console.warn(
+            `Cycle detected\n${unsorted
+                .map(
+                    node =>
+                        `${node.model.model.id ?? ""} <-- ${
+                            [...node.backs][0].model.model.id ?? ""
+                        }`
+                )
+                .join("\n")}`
+        );
+        */
 
         return new Map<ModelFrameBuffer, number>(
             models.sort(compareZ).map((model, i) => [model, i])
@@ -63,12 +77,19 @@ const buildGraph = (models: ModelFrameBuffer[], camera: Camera) => {
     return nodes;
 };
 
+/**
+ * Iteration: Sorts a leaf, then updates its front node and makes that a new leaf if it didn't have any other children.
+ *            1. Any backmost node can be sorted
+ *            2. When a backmost node is sorted, backmostNodes is updated with any new candidate (its front nodes)
+ */
 const sortGraph = (graph: TopoModel[]) => {
     const sorted: TopoModel[] = [];
 
     const backmostNodes: TopoModel[] = graph.filter(
         node => node.backs.size === 0
     );
+
+    let hasCycle = false;
 
     while (backmostNodes.length > 0) {
         const node = backmostNodes.pop()!;
@@ -80,7 +101,29 @@ const sortGraph = (graph: TopoModel[]) => {
                 backmostNodes.push(frontNode);
             }
         }
+
+        // Force-break the cycle (could be done more intelligently though)
+        if (backmostNodes.length === 0 && sorted.length < graph.length) {
+            hasCycle = true;
+
+            const breakNode = graph.find(
+                node => node.backs.size === 1 && !sorted.includes(node)
+            );
+            if (breakNode) {
+                for (const backNode of breakNode.backs) {
+                    breakNode.backs.delete(backNode);
+                    backNode.fronts.delete(breakNode);
+                }
+
+                backmostNodes.push(breakNode);
+            }
+        }
     }
+
+    if (hasCycle)
+        console.warn(
+            `Cycle detected. Fixed: ${String(sorted.length === graph.length)}`
+        );
 
     return sorted;
 };
@@ -114,16 +157,39 @@ const compare = (
         return 0;
     }
 
-    // SAT approach
-    // Testing is done when any of these are true:
-    // - ambiguous split result during the 6 face-normals, return 0
-    // - unambiguous split result after the 6 face-normals, return result
-    // - split result during the 6 cross-products, return result
-    // - all 15 normals tested without split, update CollisionSystem and make split plane by intersection
+    /**
+     * SAT approach
+     *
+     * Testing is done when any of these are true:
+     * 1. ambiguous split result during the 6 face-normals, return 0
+     * 2. unambiguous split result after the 6 face-normals, return result
+     * 3. split result during the 6 cross-products, return result
+     * 4. all 15 normals tested without split, update CollisionSystem and make split plane by intersection
+     *
+     * 1.     ___
+     *       |___|--> behind
+     *           |     ^
+     *       _ _ |_ _ _|_
+     *           |   |___|
+     *   ___     |
+     *  _| |_
+     * |_____|
+     *
+     *
+     * 3.
+     *         /|\     ____
+     *       /  |  \ /    / \
+     *      |\  |  /|   /     \
+     *      |   |   | /         \
+     *      |   |   | \         /
+     *      |/  |  \|   \     /
+     *       \  |  / \____\ /
+     *         \|/
+     */
 
     let faceNormalResult: number | undefined;
 
-    // Testing the 3 face-normals of OBB A (all six OBB planes as we need unambiguous results)
+    // Testing the 3 face-normals of eye-space Oriented Bounding Box (OBB) A (doing all six OBB planes as we need unambiguous sort results, not SAT collision detection only)
     for (const plane of boundingA.planes) {
         const isBackFacing = isPlaneBackFacing(
             plane.normal,
@@ -151,7 +217,7 @@ const compare = (
         }
     }
 
-    // Testing the 3 face-normals of OBB B (all six OBB planes as we need unambiguous results)
+    // Testing the 3 face-normals of OBB B (doing all six OBB planes as we need unambiguous results, not SAT collision detection only)
     for (const plane of boundingB.planes) {
         const isBackFacing = isPlaneBackFacing(
             plane.normal,
@@ -176,18 +242,25 @@ const compare = (
         }
     }
 
+    // Due to the ambiguous case, we don't know the correct sorting until this point (if there's one)
     if (faceNormalResult != null) return faceNormalResult;
 
-    // Expensive test below this check, trying to avoid it
-    // (boundings equally oriented at this point mean they are colliding)
-    if (boundingA.planes[0].normal.equals(boundingB.planes[0].normal)) {
+    // Expensive test below this check, trying to avoid it with early collision exit.
+    // Boundings equally oriented at this point mean they are overlapping on all three axes and colliding.
+    // NB: We don't test the more expensive 90 degree rotation here
+    if (
+        boundingA.planes[0].normal.equals(boundingB.planes[0].normal) ||
+        boundingA.planes[0].normal.equals(
+            boundingB.planes[0].normal.multiply(-1)
+        )
+    ) {
         emitCollision(modelA.model, modelB.model);
 
         return 0;
     }
 
     // Testing all cross-products between OBB A planes and OBB B planes
-    // (we need the separating plane for sorting, gap vs. no-gap is not enough)
+    // (we need the separating plane for sorting, gap vs. no-gap boolean is not enough)
     for (const planeA of boundingA.planes) {
         for (const planeB of boundingB.planes) {
             // Plane normal
@@ -201,9 +274,13 @@ const compare = (
             // Calculate separatingPlanePoint
             const crossLengthSq = crossNormal.lengthSq();
             if (crossLengthSq === 0) {
-                // Planes are parallel, no unique cross plane
-                // Knowing boundings are parallel and not separated by their planes, we know there's a collision.
-                // TODO post-mvp: Didn't we already test this at line 183?
+                // Planes are parallel (direction not considered), no unique cross plane
+                // As already stated and checked for further up, Knowing boundings are parallel and not separated
+                // by their planes, we know there's a collision. But this time we check the alignment, not the direction.
+                //
+                // Due to testing all planes of each bounding, we actually test for equal alignment, not for same
+                // direction of the boundings. The side-independent crossLengthSq check enables even quicker exit.
+
                 emitCollision(modelA.model, modelB.model);
                 return 0; // Boundings are colliding
             }
